@@ -6,7 +6,7 @@ import { SharePointModule } from './sharepoint/sharepoint.module';
 
 @Module({
   imports: [SharePointModule],
-  controllers: [AppController, SharePointController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

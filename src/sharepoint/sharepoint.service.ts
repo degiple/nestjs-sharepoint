@@ -15,11 +15,15 @@ export class SharePointService {
       process.env.CLIENT_ID,
       process.env.CLIENT_SECRET,
       process.env.TENANT_ID,
+      {
+        tokenAudience: 'https://graph.microsoft.com',
+      },
     );
 
+    const tokenResponse = await credentials.getToken();
     this.client = Client.init({
       authProvider: (done) => {
-        done(null, credentials.tokenCache._entries[0].accessToken);
+        done(null, tokenResponse.accessToken);
       },
     });
   }
