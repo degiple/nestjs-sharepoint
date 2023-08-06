@@ -1,0 +1,59 @@
+import { Injectable } from '@nestjs/common';
+import axios from 'axios';
+
+@Injectable()
+export class SharePointService {
+  private axiosInstance;
+  private tokenExpirationDate;
+
+  constructor() {
+    this.authenticate();
+  }
+
+  async authenticate() {
+    const tokenResponse = await axios.post(
+      `https://login.microsoftonline.com/00d55f22-6945-429f-9d20-4c13c06aafdf/oauth2/v2.0/token`,
+      {
+        client_id: 'a77398f6-3a7b-4e24-988e-75020598fae6',
+        client_secret: 'wpa8Q~EFIG3klhZWMOIAg3yaxQlYE_4.YtzQrcHq',
+        scope: 'https://graph.microsoft.com/.default',
+        grant_type: 'client_credentials',
+      },
+    );
+
+    this.axiosInstance = axios.create({
+      baseURL: 'https://graph.microsoft.com/v1.0',
+      timeout: 10000,
+      headers: { Authorization: `Bearer ${tokenResponse.data.access_token}` },
+    });
+
+    // Set the token expiration date
+    this.tokenExpirationDate = new Date(
+      Date.now() + tokenResponse.data.expires_in * 1000,
+    );
+  }
+
+  // async getAllSites(): Promise<any> {
+  //   // If the token is expired, authenticate again
+  //   if (new Date() > this.tokenExpirationDate) {
+  //     await this.authenticate();
+  //   }
+
+  //   const response = await this.axiosInstance.get('/sites');
+  //   return response.data;
+  // }
+
+  async getSearchSite(siteName = ''): Promise<any> {
+    if (new Date() > this.tokenExpirationDate) {
+      await this.authenticate();
+    }
+
+    if (siteName === '') {
+      const response = await this.axiosInstance.get(`/sites`);
+      return response.data;
+    } else {
+      const response = await this.axiosInstance.get(`/sites/${siteName}`);
+      return response.data;
+    }
+  }
+}
